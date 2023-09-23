@@ -57,6 +57,7 @@ Here we have an example below.
 </ul>''', unsafe_allow_html= True)
             
 st.write('''\n\nLets begin by inputting these numbers for John below!!''')
+selected_option = st.selectbox("Select a Calculator:", ["Student Loans + Investments Calculator", "Investments Calculator"])
 st.markdown("---")
 st.write('')
 left_column, right_column = st.columns(2)
@@ -77,84 +78,143 @@ st.markdown(
         </style>
         """, unsafe_allow_html=True)
 
-with left_column:
-    yearly_budget = st.slider("Enter your yearly budget (investments + student loans):", min_value=0, max_value=300_000, step=1_000, value=35_000)
-    original_invested = st.number_input("Enter your original investment:", min_value=0, max_value=1_000_000, step=10_000, value=10_000)
-    student_loans = st.number_input("Enter your total student loans:", min_value=0, max_value=1_000_000, step=10_000, value=55_000)
-    annual_interest_student_loans = st.slider("Enter annual interest on student loans:", min_value=0.5, max_value=25.0, step=0.1, value=7.0)
-    annual_returns_interest = st.slider("Expected annual interest returns:", min_value=0.5, max_value=25.0, step=0.1, value=6.0)
-    years_to_pay_off_loans = st.number_input("Enter number of years to pay off loans:", min_value=1, max_value=35, step=5, value=10)
-    years_to_investment = st.number_input("Enter years before you retire:", min_value=5, max_value=60, step=5, value=35)
-    inflation_rate = st.slider('Expected annual inflation rate: ', min_value=0.5, max_value=25.0, step=0.5, value = 3.0)
 
-def inflation_adjusted(future_principal,number_of_years,inflation_rate):
-    return future_principal / (1 + inflation_rate) ** number_of_years
+if selected_option == "Student Loans + Investments Calculator":
+    with left_column:
+        yearly_budget = st.number_input("Enter your yearly budget (investments + student loans):", min_value=0, max_value=300_000, step=1_000, value=35_000)
+        original_invested = st.number_input("Enter your original investment:", min_value=0, max_value=1_000_000, step=10_000, value=10_000)
+        student_loans = st.number_input("Enter your total student loans:", min_value=0, max_value=1_000_000, step=10_000, value=55_000)
+        annual_interest_student_loans = st.slider("Enter annual interest on student loans:", min_value=0.5, max_value=25.0, step=0.1, value=7.0)
+        annual_returns_interest = st.slider("Expected annual interest returns:", min_value=0.5, max_value=25.0, step=0.1, value=6.0)
+        years_to_pay_off_loans = st.slider("Enter number of years to pay off loans:", min_value=1, max_value=50, step=1, value=10)
+        years_to_investment = st.slider("Enter years before you retire:", min_value=1, max_value=50, step=1, value=35)
+        inflation_rate = st.slider('Expected annual inflation rate: ', min_value=0.5, max_value=25.0, step=0.5, value = 3.0)
 
-annual_interest_student_loans = annual_interest_student_loans / 100
-annual_returns_interest = annual_returns_interest / 100
-inflation_rate = inflation_rate / 100
-inflation_rate_adjusted = ((1 + annual_returns_interest) / (1 + inflation_rate)) - 1
+    def inflation_adjusted(future_principal,number_of_years,inflation_rate):
+        return future_principal / (1 + inflation_rate) ** number_of_years
 
-monthly_payments_student_loans = get_monthly_loan_payment(principal=student_loans, 
-                                                          years=years_to_pay_off_loans, 
-                                                          annual_interest=annual_interest_student_loans)
-annual_payments_student_loans = get_annual_payments(monthly_payments_student_loans)
-total_interest_paid_sl = get_total_interest_paid(annual_payments_student_loans, 
-                                                years=years_to_pay_off_loans, 
-                                                student_loans_total=student_loans)
-total_annual_returns_before_loans_paid_off = get_returns(PV=original_invested,
-                                                        PMT=yearly_budget - annual_payments_student_loans,
-                                                        rate=annual_returns_interest,
-                                                        years=years_to_pay_off_loans)
+    annual_interest_student_loans = annual_interest_student_loans / 100
+    annual_returns_interest = annual_returns_interest / 100
+    inflation_rate = inflation_rate / 100
+    inflation_rate_adjusted = ((1 + annual_returns_interest) / (1 + inflation_rate)) - 1
 
-total_annual_returns = get_returns(PV=total_annual_returns_before_loans_paid_off,
-                                                        PMT=yearly_budget,
-                                                        rate=annual_returns_interest,
-                                                        years=years_to_investment - years_to_pay_off_loans)
+    monthly_payments_student_loans = get_monthly_loan_payment(principal=student_loans, 
+                                                            years=years_to_pay_off_loans, 
+                                                            annual_interest=annual_interest_student_loans)
+    annual_payments_student_loans = get_annual_payments(monthly_payments_student_loans)
+    total_interest_paid_sl = get_total_interest_paid(annual_payments_student_loans, 
+                                                    years=years_to_pay_off_loans, 
+                                                    student_loans_total=student_loans)
+    total_annual_returns_before_loans_paid_off = get_returns(PV=original_invested,
+                                                            PMT=yearly_budget - annual_payments_student_loans,
+                                                            rate=annual_returns_interest,
+                                                            years=years_to_pay_off_loans)
 
-inflation_annual_returns_before_loans_paid_off = get_returns(PV=original_invested,
-                                                        PMT=yearly_budget - annual_payments_student_loans,
-                                                        rate=inflation_rate_adjusted,
-                                                        years=years_to_pay_off_loans)
+    total_annual_returns = get_returns(PV=total_annual_returns_before_loans_paid_off,
+                                                            PMT=yearly_budget,
+                                                            rate=annual_returns_interest,
+                                                            years=years_to_investment - years_to_pay_off_loans)
 
-inflation_adjusted_returns = get_returns(PV=inflation_annual_returns_before_loans_paid_off,
-                                                        PMT=yearly_budget,
-                                                        rate=inflation_rate_adjusted,
-                                                        years=years_to_investment - years_to_pay_off_loans)
+    inflation_annual_returns_before_loans_paid_off = get_returns(PV=original_invested,
+                                                            PMT=yearly_budget - annual_payments_student_loans,
+                                                            rate=inflation_rate_adjusted,
+                                                            years=years_to_pay_off_loans)
 
-monthly_payments_student_loans = '{:,.2f}'.format(round(monthly_payments_student_loans, 2))
-annual_payments_student_loans = '{:,.2f}'.format(round(annual_payments_student_loans, 2))
-total_annual_returns = '{:,.2f}'.format(round(total_annual_returns, 2))
-total_interest_paid_sl = '{:,.2f}'.format(round(total_interest_paid_sl, 2))
-inflation_adjusted_returns = '{:,.2f}'.format(round(inflation_adjusted_returns, 2))
+    inflation_adjusted_returns = get_returns(PV=inflation_annual_returns_before_loans_paid_off,
+                                                            PMT=yearly_budget,
+                                                            rate=inflation_rate_adjusted,
+                                                            years=years_to_investment - years_to_pay_off_loans)
 
-with right_column:
-    st.markdown(
-        f"""
-        <div style="background-color: #FF5732; padding: 25px; border-radius: 10px;">
-            <h2 style="color: white;">*Results:</h2>
-            <h5 style="color: white;">How much is John's student loan monthly payments?</h5>
-            <p style="color: white; font-size: 27px;">${monthly_payments_student_loans}</p>
-            <h5 style="color: white;">How much is John's student loan annual payments?</h5>
-            <p style="color: white; font-size: 27px;">${annual_payments_student_loans}</p>
-            <h5 style="color: white;">**How much will John retire with (before taxes)?</h5>
-            <p style="color: white; font-size: 27px;">${total_annual_returns}</p>
-            <h5 style="color: white;">**How much will John retire with? (inflation adjusted + before taxes)?</h5>
-            <p style="color: white; font-size: 27px;">${inflation_adjusted_returns}</p>
-            <h5 style="color: white;">How much will John pay in student loan interest?</h5>
-            <p style="color: white; font-size: 27px;">${total_interest_paid_sl}</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    monthly_payments_student_loans = '{:,.2f}'.format(round(monthly_payments_student_loans, 2))
+    annual_payments_student_loans = '{:,.2f}'.format(round(annual_payments_student_loans, 2))
+    total_annual_returns = '{:,.2f}'.format(round(total_annual_returns, 2))
+    total_interest_paid_sl = '{:,.2f}'.format(round(total_interest_paid_sl, 2))
+    inflation_adjusted_returns = '{:,.2f}'.format(round(inflation_adjusted_returns, 2))
 
-st.write('')
-st.write('')
-st.write('')
-st.write('''*Disclaimer: This interest calculator is provided for entertainment purposes only. 
-            It is not intended to constitute financial advice or serve as a substitute for professional financial guidance. 
-            The results generated by this calculator should not be considered as recommendations or endorsements for any financial decisions. 
-            Always consult with a qualified financial advisor or expert before making any financial choices or investments. 
-            Your personal financial situation may vary, and this calculator is not tailored to your specific needs or circumstances.''')
+    with right_column:
+        st.markdown(
+            f"""
+            <div style="background-color: #FF5732; padding: 25px; border-radius: 10px;">
+                <h2 style="color: white;">*Results:</h2>
+                <h5 style="color: white;">How much is John's student loan monthly payments?</h5>
+                <p style="color: white; font-size: 27px;">${monthly_payments_student_loans}</p>
+                <h5 style="color: white;">How much is John's student loan annual payments?</h5>
+                <p style="color: white; font-size: 27px;">${annual_payments_student_loans}</p>
+                <h5 style="color: white;">**How much will John retire with (before taxes)?</h5>
+                <p style="color: white; font-size: 27px;">${total_annual_returns}</p>
+                <h5 style="color: white;">**How much will John retire with? (inflation adjusted + before taxes)?</h5>
+                <p style="color: white; font-size: 27px;">${inflation_adjusted_returns}</p>
+                <h5 style="color: white;">How much will John pay in student loan interest?</h5>
+                <p style="color: white; font-size: 27px;">${total_interest_paid_sl}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-st.write('**This retirement value is not reflective of fees, taxes, nor investment vehicles.')
+    st.write('')
+    st.write('')
+    st.write('')
+    st.write('''*Disclaimer: This interest calculator is provided for entertainment purposes only. 
+                It is not intended to constitute financial advice or serve as a substitute for professional financial guidance. 
+                The results generated by this calculator should not be considered as recommendations or endorsements for any financial decisions. 
+                Always consult with a qualified financial advisor or expert before making any financial choices or investments. 
+                Your personal financial situation may vary, and this calculator is not tailored to your specific needs or circumstances.''')
+
+    st.write('**This retirement value is not reflective of fees, taxes, nor investment vehicles.')
+
+
+
+elif selected_option == "Investments Calculator":
+    with left_column:
+        yearly_budget = st.number_input("Enter your yearly budget (investments):", min_value=0, max_value=300_000, step=1_000, value=35_000)
+        original_invested = st.number_input("Enter your original investment:", min_value=0, max_value=1_000_000, step=10_000, value=10_000)
+        annual_returns_interest = st.slider("Expected annual interest returns:", min_value=0.5, max_value=25.0, step=0.1, value=6.0)
+        years_to_investment = st.slider("Enter years before you retire:", min_value=1, max_value=60, step=1, value=35)
+        inflation_rate = st.slider('Expected annual inflation rate: ', min_value=0.5, max_value=25.0, step=0.5, value = 3.0)
+
+    def inflation_adjusted(future_principal,number_of_years,inflation_rate):
+        return future_principal / (1 + inflation_rate) ** number_of_years
+
+    annual_returns_interest = annual_returns_interest / 100
+    inflation_rate = inflation_rate / 100
+    inflation_rate_adjusted = ((1 + annual_returns_interest) / (1 + inflation_rate)) - 1
+
+
+    total_annual_returns = get_returns(PV=original_invested,
+                                       PMT=yearly_budget,
+                                       rate=annual_returns_interest,
+                                       years=years_to_investment)
+
+    inflation_adjusted_returns = get_returns(PV=original_invested,
+                                             PMT=yearly_budget,
+                                             rate=inflation_rate_adjusted,
+                                             years=years_to_investment)
+
+    total_annual_returns = '{:,.2f}'.format(round(total_annual_returns, 2))
+    inflation_adjusted_returns = '{:,.2f}'.format(round(inflation_adjusted_returns, 2))
+
+    with right_column:
+        st.markdown(
+            f"""
+            <div style="background-color: #FF5732; padding: 25px; border-radius: 10px;">
+                <h2 style="color: white;">*Results:</h2>
+                <h5 style="color: white;">**How much will John retire with (before taxes)?</h5>
+                <p style="color: white; font-size: 27px;">${total_annual_returns}</p>
+                <h5 style="color: white;">**How much will John retire with? (inflation adjusted + before taxes)?</h5>
+                <p style="color: white; font-size: 27px;">${inflation_adjusted_returns}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.write('')
+    st.write('')
+    st.write('')
+    st.write('''*Disclaimer: This interest calculator is provided for entertainment purposes only. 
+                It is not intended to constitute financial advice or serve as a substitute for professional financial guidance. 
+                The results generated by this calculator should not be considered as recommendations or endorsements for any financial decisions. 
+                Always consult with a qualified financial advisor or expert before making any financial choices or investments. 
+                Your personal financial situation may vary, and this calculator is not tailored to your specific needs or circumstances.''')
+
+    st.write('**This retirement value is not reflective of fees, taxes, nor investment vehicles.')
+
